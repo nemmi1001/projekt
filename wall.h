@@ -12,6 +12,7 @@ class Wall {
 private:
 	/* data */
 public:
+    int idx;      // index steny
     int n;        // pocet castic steny
     double l;     // delka steny
     double s[2];  // smerovy vektor steny
@@ -22,4 +23,7 @@ public:
 
     void Save(std::vector<particle>& P, const std::string& filename);
 };
+
+void Corners(std::vector<particle>& P1, std::vector<particle>& P2);
+bool CompareFloatNumbers(double x, double y, double eps);
 
