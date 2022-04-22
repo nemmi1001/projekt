@@ -19,11 +19,18 @@ public:
 
     std::vector<particle> P;    // castice steny
 
+    Wall(){};
 	Wall(double x_0, double y_0, double x_end, double y_end, double dp);
 
-    void Save(std::vector<particle>& P, const std::string& filename);
+    void create(double x_0, double y_0, double x_end, double y_end, double dp);
+    void save(std::vector<particle>& P, const std::string& filename);
 };
 
-void Corners(std::vector<particle>& P1, std::vector<particle>& P2);
-bool CompareFloatNumbers(double x, double y, double eps);
+void solveCorners(std::vector<Wall>& wall);
+void Corner(std::vector<particle>& P1, std::vector<particle>& P2);
+bool compareFloatNumbers(double x, double y, double eps);
+void defineNormals(std::vector<Wall>& wall);
+void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, double b, double dp);
+void defineCircle(std::vector<Wall>& wall, double x_0, double y_0, double r, double dp);
+void saveMesh(std::vector<Wall>& wall);
 
