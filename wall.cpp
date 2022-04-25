@@ -1,8 +1,10 @@
+#define _USE_MATH_DEFINES
 #include <iostream>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
 #include "wall.h"
+
 
 using namespace std;
 
@@ -40,10 +42,13 @@ Wall::Wall(double x_0, double y_0, double x_end, double y_end, double dp){
 
 void Wall::create(double x_0, double y_0, double x_end, double y_end, double dp){
 	l = sqrt((pow(x_end-x_0, 2) + pow(y_end-y_0, 2)));
-	
-    double n = l/dp + 1;
+	//double alpha = 2 * asin(l / (2*r));
+
+	cout << "l = " << l << endl;
+    int n = l/dp + 1;
+	//cout << "n = " << n << endl; 
 	if (round(n) != n) {
-		printf("\n[Error] Pocet castic neni cele cislo: %lf\n", n);
+		printf("\n[Error] Pocet castic neni cele cislo: %d\n", n);
         printf("X0 = [%lf, %lf] a XEND = [%lf, %lf]\n", x_0, y_0, x_end, y_end);
 		exit(1);
 	}
@@ -69,11 +74,12 @@ void Wall::create(double x_0, double y_0, double x_end, double y_end, double dp)
         P[i].ny =  s[0];
     }
 }
+//void Wall::create_(double x_0, double y_0, double x_end )
 
 void Wall::save(vector<particle>& P, const string& filename) {
 	ofstream vystup(filename);
 
-	for(int i = 0; i < P.size(); i++) {
+	for(size_t i = 0; i < P.size(); i++) {
 		vystup << fixed << setprecision(2);
 		vystup << P[i].x << "\t" << P[i].y << "\t" << P[i].nx << "\t" << P[i].ny << endl;
 		
@@ -161,14 +167,47 @@ void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, 
 }
 
 void defineCircle(std::vector<Wall>& wall, double x_0, double y_0, double r, double dp) {
+	vector<double> t;
+	linspace(t, 0, dp/r, 2*M_PI);
+	
+	wall.resize(t.size());
+	wall[0].create(x_0, y_0, r*cos(t[0]), r*sin(t[0]), dp);
+	//cout << "size = " << wall[0].P.size() << "\n";
+	wall[0].P[0].nx = r*cos(t[0]);
+	wall[0].P[0].ny = r*sin(t[0]);
+	wall[0].P[1].nx = r*cos(t[1]);
+	wall[0].P[1].ny = r*sin(t[1]);
+	//cout << "size = " << wall[0].P.size() << "\n";
+
+	for(size_t i = 1; i < t.size(); i++){
+		wall[i].create(r*cos(t[i-1]), r*sin(t[i-1]), r*cos(t[i]), r*sin(t[i]), dp);
+		wall[i].P[0].nx = r*cos(t[i-1]); 
+		wall[i].P[0].ny = r*sin(t[i-1]);
+		wall[i].P[1].nx = r*cos(t[i]);
+		wall[i].P[1].ny = r*sin(t[i]);
+
+	}
+}
+
+void linspace(vector<double>& t, double t_0, double dt, double t_end){
+	int n = (t_end - t_0)/dt; 
+	//if (round(n) != n)
+	//	cout << "Error[linspace], interval nelze rozedělit "
+	t.resize(n);
+	t[0] = t_0;
+
+	for (int i = 0; i < n; i++)
+		t[i] = i * dt; 
 
 }
+
+//void defineCircleArc(std::vector<)
 
 void defineNormals(std::vector<Wall>& wall) {
 
 }
 
 void saveMesh(std::vector<Wall>& wall) {
-	for (int i = 0; i < wall.size(); i++)
+	for (size_t i = 0; i < wall.size(); i++)
 		wall[i].save(wall[i].P, "wall" + std::to_string(i + 1) + ".txt");
 }

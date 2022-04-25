@@ -33,4 +33,5 @@ void defineNormals(std::vector<Wall>& wall);
 void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, double b, double dp);
 void defineCircle(std::vector<Wall>& wall, double x_0, double y_0, double r, double dp);
 void saveMesh(std::vector<Wall>& wall);
+void linspace(std::vector<double>& t, double t_0, double dt, double t_end);
 
