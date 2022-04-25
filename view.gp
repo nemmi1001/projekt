@@ -1,3 +1,4 @@
+set size square
 set xrange [-5:10]
 set yrange [-5:10]
 set grid

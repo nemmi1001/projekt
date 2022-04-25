@@ -26,12 +26,19 @@ public:
     void save(std::vector<particle>& P, const std::string& filename);
 };
 
-void solveCorners(std::vector<Wall>& wall);
-void Corner(std::vector<particle>& P1, std::vector<particle>& P2);
-bool compareFloatNumbers(double x, double y, double eps);
-void defineNormals(std::vector<Wall>& wall);
+void solveWallCorners(std::vector<Wall>& wall);
+void WallCorner(std::vector<particle>& P1, std::vector<particle>& P2);
+
 void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, double b, double dp);
 void defineCircle(std::vector<Wall>& wall, double x_0, double y_0, double r, double dp);
-void saveMesh(std::vector<Wall>& wall);
-void linspace(std::vector<double>& t, double t_0, double dt, double t_end);
+void defineCirlceArc(std::vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double r, double dp);
 
+void WallSave(std::vector<Wall>& wall);
+void WallFinalize(std::vector<Wall>& wall);
+
+
+bool compareFloatNumbers(double x, double y, double eps);
+void linspace(std::vector<double>& t, double t_0, double dt, double t_end);
+double integrateRectMethod(double x, double dx, double f(double x));
+double integrateTrapMethod(double x, double dx, double f(double x), double a, double b);
+double integrateFunction(double f(double x), double a, double b);

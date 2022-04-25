@@ -74,7 +74,6 @@ void Wall::create(double x_0, double y_0, double x_end, double y_end, double dp)
         P[i].ny =  s[0];
     }
 }
-//void Wall::create_(double x_0, double y_0, double x_end )
 
 void Wall::save(vector<particle>& P, const string& filename) {
 	ofstream vystup(filename);
@@ -88,14 +87,16 @@ void Wall::save(vector<particle>& P, const string& filename) {
 	vystup.close();
 }
 
-void solveCorners(std::vector<Wall>& wall) {
-	Corner(wall[0].P, wall[1].P);
-	Corner(wall[1].P, wall[2].P);
-	Corner(wall[2].P, wall[3].P);
-	Corner(wall[3].P, wall[0].P);
+
+
+void solveWallCorners(vector<Wall>& wall) {
+	WallCorner(wall[0].P, wall[1].P);
+	WallCorner(wall[1].P, wall[2].P);
+	WallCorner(wall[2].P, wall[3].P);
+	WallCorner(wall[3].P, wall[0].P);
 }
 
-void Corner(vector<particle>& P1, vector<particle>& P2) {
+void WallCorner(vector<particle>& P1, vector<particle>& P2) {
 	double nx, ny, l;
 	double eps = 1e-14;
 
@@ -151,11 +152,8 @@ void Corner(vector<particle>& P1, vector<particle>& P2) {
 	}
 }
 
-bool compareFloatNumbers(double x, double y, double eps) {
-	return fabs(x-y) <= eps;
-}
 
-void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, double b, double dp) {
+void defineRectangle(vector<Wall>& wall, double x_0, double y_0, double a, double b, double dp) {
 	wall.resize(4);
 
 	wall[0].create(x_0    , y_0	   , x_0    , y_0 + b, dp);
@@ -163,33 +161,56 @@ void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, 
 	wall[2].create(x_0 + a, y_0 + b, x_0 + a, y_0    , dp);
 	wall[3].create(x_0 + a, y_0    , x_0    , y_0	 , dp);
 
-	solveCorners(wall);
+	solveWallCorners(wall);
 }
 
-void defineCircle(std::vector<Wall>& wall, double x_0, double y_0, double r, double dp) {
+void defineCircle(vector<Wall>& wall, double x_0, double y_0, double r, double dp) {
 	vector<double> t;
 	linspace(t, 0, dp/r, 2*M_PI);
 	
-	wall.resize(t.size());
-	wall[0].create(x_0, y_0, r*cos(t[0]), r*sin(t[0]), dp);
-	//cout << "size = " << wall[0].P.size() << "\n";
-	wall[0].P[0].nx = r*cos(t[0]);
-	wall[0].P[0].ny = r*sin(t[0]);
-	wall[0].P[1].nx = r*cos(t[1]);
-	wall[0].P[1].ny = r*sin(t[1]);
-	//cout << "size = " << wall[0].P.size() << "\n";
+	int n = t.size();
+	wall.resize(n);
 
-	for(size_t i = 1; i < t.size(); i++){
-		wall[i].create(r*cos(t[i-1]), r*sin(t[i-1]), r*cos(t[i]), r*sin(t[i]), dp);
-		wall[i].P[0].nx = r*cos(t[i-1]); 
-		wall[i].P[0].ny = r*sin(t[i-1]);
-		wall[i].P[1].nx = r*cos(t[i]);
-		wall[i].P[1].ny = r*sin(t[i]);
+	for(int i = 0; i < n-1; i++){
+		wall[i].P.resize(2);
+		wall[i].P[0].x  = x_0 + r*cos(t[i]); 
+		wall[i].P[0].y  = y_0 + r*sin(t[i]);
+		wall[i].P[1].x  = x_0 + r*cos(t[i+1]);
+		wall[i].P[1].y  = y_0 + r*sin(t[i+1]);
+		wall[i].P[0].nx = cos(t[i]); 
+		wall[i].P[0].ny = sin(t[i]);
+		wall[i].P[1].nx = cos(t[i+1]);
+		wall[i].P[1].ny = sin(t[i+1]);
 
 	}
+
+	wall[n-1].P.resize(2);
+	wall[n-1].P[0].x  = x_0 + r*cos(t[n-1]);
+	wall[n-1].P[0].y  = y_0 + r*sin(t[n-1]);
+	wall[n-1].P[1].x  = x_0 + r*cos(t[0]);
+	wall[n-1].P[1].y  = y_0 + r*sin(t[0]);
+	wall[n-1].P[0].nx = cos(t[n-1]);
+	wall[n-1].P[0].ny = sin(t[n-1]);
+	wall[n-1].P[1].nx = cos(t[0]);
+	wall[n-1].P[1].ny = sin(t[0]); 
 }
 
-void linspace(vector<double>& t, double t_0, double dt, double t_end){
+void defineCirlceArc(vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double r, double dp) {
+
+}
+
+
+void WallFinalize(vector<Wall>& wall) {
+
+}
+
+void WallSave(vector<Wall>& wall) {
+	for (size_t i = 0; i < wall.size(); i++)
+		wall[i].save(wall[i].P, "wall" + std::to_string(i + 1) + ".txt");
+}
+
+
+void linspace(vector<double>& t, double t_0, double dt, double t_end) {
 	int n = (t_end - t_0)/dt; 
 	//if (round(n) != n)
 	//	cout << "Error[linspace], interval nelze rozedělit "
@@ -201,13 +222,33 @@ void linspace(vector<double>& t, double t_0, double dt, double t_end){
 
 }
 
-//void defineCircleArc(std::vector<)
-
-void defineNormals(std::vector<Wall>& wall) {
-
+bool compareFloatNumbers(double x, double y, double eps) {
+	return fabs(x-y) <= eps;
 }
 
-void saveMesh(std::vector<Wall>& wall) {
-	for (size_t i = 0; i < wall.size(); i++)
-		wall[i].save(wall[i].P, "wall" + std::to_string(i + 1) + ".txt");
+double integrateRectMethod(double x, double dx, double f(double x)) {
+	double fx = f(x);
+	return fx * dx;
+}
+
+double integrateTrapMethod(double x, double dx, double f(double x), double a, double b) {
+	double fx = f(x);
+	if (x==a|| x == b){
+		return 1/2. * fx * dx;
+	}
+	return fx * dx;
+}
+
+double integrateFunction(double f(double x), double a, double b){
+	int N = 1e5;
+	double x, dx = (b-a)/N;
+	double S = 0;
+
+	for(int i = 1; i <= N; i++) {
+		x = a + i * dx;
+		//S += integrateRectMethod(x, dx, f);
+		S += integrateTrapMethod(x, dx, f, a, b);
+	}
+	
+	return S;
 }
