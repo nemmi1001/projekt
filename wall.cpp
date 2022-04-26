@@ -195,7 +195,58 @@ void defineCircle(vector<Wall>& wall, double x_0, double y_0, double r, double d
 	wall[n-1].P[1].ny = sin(t[0]); 
 }
 
-void defineCirlceArc(vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double r, double dp) {
+void defineCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double x_s, double y_s, double dp) {
+	vector <double> t;	
+	double r=sqrt((x_0-x_s)*(x_0-x_s)+(y_0-y_s)*(y_0-y_s));
+	double l_half=0.5*sqrt((-x_0+x_end)*(-x_0+x_end)+(-y_0+y_end)*(-y_0+y_end));
+	double tau=2*asin(l_half/r);
+	double psi;
+	if(x_s==x_0 && y_0>y_s){psi=0.5*M_PI;} //horní pi/2
+	else if (x_s==x_0 && y_0<y_s){psi=1.5*M_PI;}//dolní pi/2
+	else {
+	double psi_p=atan(fabs(y_0-y_s)/fabs(x_0-x_s));
+	
+	if(x_s<x_0 && y_s<=y_0){psi=psi_p;}//1. kvadrant
+	else if(x_s>=x_0 && y_s<y_0){psi=M_PI-psi_p;}//2.kvadrant
+	else if(x_s>x_0 && y_s>=y_0){psi=M_PI+psi_p;}//3.kvadrant
+	else if(x_s<=x_0 && y_s>y_0){psi=2*M_PI-psi_p;}//4.kvadrant
+	else {cout<<"nefunguje"<<endl;}
+	
+		}
+	
+	double phi =psi+tau;	
+	//cout<<psi<< "   "<< phi <<endl;
+	linspace(t,psi,dp/r,phi);
+	int n= t.size();
+	
+	
+	wall.resize(n);
+		for(int i = 0; i < n-1; i++){
+		cout<<t[i]<<endl;
+		wall[i].P.resize(2);
+		wall[i].P[0].x  = x_s +r*cos(t[i]); 
+		wall[i].P[0].y  = y_s + r*sin(t[i]);
+		wall[i].P[1].x  = x_s + r*cos(t[i+1]);
+		wall[i].P[1].y  = y_s + r*sin(t[i+1]);
+		wall[i].P[0].nx = cos(t[i]); 
+		wall[i].P[0].ny = sin(t[i]);
+		wall[i].P[1].nx = cos(t[i+1]);
+		wall[i].P[1].ny = sin(t[i+1]);
+
+	}
+        wall[n-1].P.resize(2);
+	wall[n-1].P[0].x = wall[n-2].P[1].x;
+	wall[n-1].P[0].y = wall[n-2].P[1].y;
+	wall[n-1].P[1].x = x_end;
+	wall[n-1].P[1].y = y_end;
+
+	wall[n-1].P[0].nx = wall[n-2].P[1].nx;
+	wall[n-1].P[0].ny = wall[n-2].P[1].ny;
+	wall[n-1].P[1].nx =cos(phi);
+	wall[n-1].P[1].ny =sin(phi);	
+		
+ 
+
 
 }
 
@@ -215,10 +266,10 @@ void linspace(vector<double>& t, double t_0, double dt, double t_end) {
 	//if (round(n) != n)
 	//	cout << "Error[linspace], interval nelze rozedělit "
 	t.resize(n);
-	t[0] = t_0;
+	//t[0] = t_0;
 
 	for (int i = 0; i < n; i++)
-		t[i] = i * dt; 
+		t[i] = t_0 + i * dt; 
 
 }
 

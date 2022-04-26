@@ -31,7 +31,7 @@ void WallCorner(std::vector<particle>& P1, std::vector<particle>& P2);
 
 void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, double b, double dp);
 void defineCircle(std::vector<Wall>& wall, double x_0, double y_0, double r, double dp);
-void defineCirlceArc(std::vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double r, double dp);
+void defineCircleArc(std::vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double x_s,double y_s, double dp);
 
 void WallSave(std::vector<Wall>& wall);
 void WallFinalize(std::vector<Wall>& wall);

@@ -7,11 +7,12 @@ double f(double x);
 
 
 int main(){
-	double dp = 1;
+	double dp = 0.1;
 
 	std::vector<Wall> wall;
 	//defineRectangle(wall, 2, 2, 6, 3, dp);
-	defineCircle(wall, 3, 5, 2, dp);
+       //	defineCircle(wall, 3, 5, 2, dp);
+       defineCircleArc(wall,5,5,-5,5,0,0,dp);
 
 /*
 	std::vector<Wall> wall = {Wall(2, 2, 2, 5, dp), 
