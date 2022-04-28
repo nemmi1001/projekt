@@ -222,7 +222,7 @@ void defineCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_end, d
 	
 	wall.resize(n);
 		for(int i = 0; i < n-1; i++){
-		cout<<t[i]<<endl;
+		//cout<<t[i]<<endl;
 		wall[i].P.resize(2);
 		wall[i].P[0].x  = x_s +r*cos(t[i]); 
 		wall[i].P[0].y  = y_s + r*sin(t[i]);
@@ -249,6 +249,71 @@ void defineCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_end, d
 
 
 }
+
+
+void defineCADCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_b, double y_b, double r, int ori,double dp){
+			double x_a = 0.5*(x_b+x_0);
+			double y_a = 0.5*(y_0+y_b);  // průsečík osy úsečky s úsečkou
+			double l_half = sqrt((x_a-x_0)*(x_a-x_0)+(y_a-y_0)*(y_a-y_0));
+			double h = sqrt(r*r-l_half * l_half);
+			
+			//
+			double x_1 = (y_a*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) - y_0*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) + h*h*x_0 - h*h*x_a - r*r*x_0 + r*r*x_a - x_0*x_a*x_a - x_0*x_0*x_a + x_0*y_0*y_0 + x_0*y_a*y_a + x_a*y_0*y_0 + x_a*y_a*y_a + x_0*x_0*x_0 + x_a*x_a*x_a - 2*x_0*y_0*y_a - 2*x_a*y_0*y_a)/(2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
+
+double x_2 = (y_0*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) - y_a*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) + h*h*x_0 - h*h*x_a - r*r*x_0 + r*r*x_a - x_0*x_a*x_a - x_0*x_0*x_a + x_0*y_0*y_0 + x_0*y_a*y_a + x_a*y_0*y_0 + x_a*y_a*y_a + x_0*x_0*x_0 + x_a*x_a*x_a - 2*x_0*y_0*y_a - 2*x_a*y_0*y_a)/(2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
+
+double y_1 = (x_0*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) - x_a*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) + h*h*y_0 - h*h*y_a - r*r*y_0 + r*r*y_a + x_0*x_0*y_0 + x_0*x_0*y_a + x_a*x_a*y_0 + x_a*x_a*y_a - y_0*y_a*y_a - y_0*y_0*y_a + y_0*y_0*y_0 + y_a*y_a*y_a - 2*x_0*x_a*y_0 - 2*x_0*x_a*y_a)/(2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
+
+double y_2 = (x_a*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) - x_0*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)*(- h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) + h*h*y_0 - h*h*y_a - r*r*y_0 + r*r*y_a + x_0*x_0*y_0 + x_0*x_0*y_a + x_a*x_a*y_0 + x_a*x_a*y_a - y_0*y_a*y_a - y_0*y_0*y_a + y_0*y_0*y_0 + y_a*y_a*y_a - 2*x_0*x_a*y_0 - 2*x_0*x_a*y_a)/(2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
+			//
+			cout<<x_1<< "   "<<y_1<<"\n";
+			cout<<x_2<< "   "<<y_2<<"\n";
+			// ori=1  konvex, ori=-1 konkáv
+			double px_konvex=0;
+			double py_konvex=0;
+			double px_konkav=0;
+			double py_konkav=0;
+			double p_x=0;
+			double p_y=0;
+			if (y_1>y_2){
+				 py_konvex=y_1;
+				 px_konvex=x_1;
+				
+				 py_konkav=y_2;
+				 px_konkav=x_2;			}
+			else if (y_1<=y_2){
+				 py_konvex=y_2;
+				 px_konvex=x_2;
+				
+				 py_konkav=y_1;
+				 px_konkav=x_1;	}
+			
+			if(ori==1){
+			 	 p_x=px_konvex;
+				 p_y=py_konvex;
+				
+					;}
+			else if(ori==-1){
+				 p_x=px_konkav;
+				 p_y=py_konkav;
+					;}
+			
+			else {cout<<"Špatná orientace zadej 1 nebo -1"<<"\n";}
+		
+		
+			
+		
+			defineCircleArc(wall, x_0, y_0, x_b , y_b,  p_x,  p_y, dp);
+			
+
+
+
+
+
+					}
+
+
+
 
 
 void WallFinalize(vector<Wall>& wall) {
@@ -303,3 +368,78 @@ double integrateFunction(double f(double x), double a, double b){
 	
 	return S;
 }
+
+
+//hokus pokus
+void write_to_ASCII_VTK (Wall wall, string filename)
+{
+
+        int np= wall.P.size();
+        
+
+        ofstream vystup(filename);
+        
+
+        // file header
+        vystup << "# vtk DataFile Version 3.0" << endl << "vtk output" << endl << "ASCII" << endl << "DATASET POLYDATA" << endl;
+
+        // point coordinates list
+        vystup << "POINTS " << np << " float" << std::endl;
+        for(int i=0;i<np;i++)
+        {
+                vystup << wall.P[i].x << " " << wall.P[i].y << " 0" << endl;
+        }
+        
+        // nefungují normály v paraview
+      	vystup << "POLYDATA " << std::endl;
+
+	/*vystup << "type 1 " << np << " int" << std::endl;
+	for(int i=0;i<np;i++)
+	{
+		vystup << "f" << std::endl;
+	}
+	*/
+	vystup << "norma " << np << " float" << std::endl;
+	for(int i=0;i<np;i++)
+	{
+		vystup << wall.P[i].nx << wall.P[i].nx<< "0"<< std::endl;
+	}
+	
+	
+
+        //      data fields
+        /*file << "POINT_DATA " << np << std::endl << "FIELDS FieldData 4" << std::endl;
+
+        file << "type 1 " << np << " int" << std::endl;
+        for(const idx &type: particles.data.part_type)
+        {
+                file << type << std::endl;
+        }
+
+        file << "pressure 1 " << np << " float" << std::endl;
+        for(const real &p: particles.data.p)
+        {
+                file << p << std::endl;
+        }
+
+        file << "density 1 " << np << " float" << std::endl;
+        for(const real &rho: particles.data.rho)
+        {
+                file << rho << std::endl;
+        }
+
+        file << "velocity 3 " << np << " float" << std::endl;
+        for(const realvec &v : particles.data.v){
+                file << v.x << " " << v.y << " 0" << std::endl;
+        }
+*/
+        vystup.close();
+
+}
+
+
+
+
+
+
+

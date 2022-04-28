@@ -33,6 +33,9 @@ void defineRectangle(std::vector<Wall>& wall, double x_0, double y_0, double a, 
 void defineCircle(std::vector<Wall>& wall, double x_0, double y_0, double r, double dp);
 void defineCircleArc(std::vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double x_s,double y_s, double dp);
 
+void defineCADCircleArc(std::vector<Wall>& wall, double x_0, double y_0, double x_b, double y_b, double r, int ori,double dp);
+void write_to_ASCII_VTK (Wall wall, std::string filename);
+
 void WallSave(std::vector<Wall>& wall);
 void WallFinalize(std::vector<Wall>& wall);
 
