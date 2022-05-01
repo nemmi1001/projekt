@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Wall::Wall(double x_0, double y_0, double x_end, double y_end, double dp){
+Wall::Wall(double x_0, double y_0, double x_end, double y_end, double dp) {
 	l = sqrt((pow(x_end-x_0, 2) + pow(y_end-y_0, 2)));
 	
 
@@ -53,7 +53,7 @@ Wall::Wall(double x_0, double y_0, double x_end, double y_end, double dp){
 	P[0].nx = -s[1];
 	P[0].ny =  s[0];
 		
-    for(int i = 1; i < n; i++) {
+    for (int i = 1; i < n; i++) {
         P[i].x  = P[i-1].x + dp * s[0];
         P[i].y  = P[i-1].y + dp * s[1];
         P[i].nx = -s[1];
@@ -73,7 +73,7 @@ Wall::Wall(double x_0, double y_0, double x_end, double y_end, double dp){
 	*/
 }
 
-void Wall::create(double x_0, double y_0, double x_end, double y_end, double dp){
+void Wall::create(double x_0, double y_0, double x_end, double y_end, double dp) {
 	l = sqrt((pow(x_end-x_0, 2) + pow(y_end-y_0, 2)));
 
     int n = l/dp + 1;
@@ -98,7 +98,7 @@ void Wall::create(double x_0, double y_0, double x_end, double y_end, double dp)
 	P[0].nx = -s[1];
 	P[0].ny =  s[0];
 		
-    for(int i = 1; i < n; i++) {
+    for (int i = 1; i < n; i++) {
         P[i].x  = P[i-1].x + dp * s[0];
         P[i].y  = P[i-1].y + dp * s[1];
         P[i].nx = -s[1];
@@ -115,10 +115,10 @@ void Wall::create(double x_0, double y_0, double x_end, double y_end, double dp)
 	}
 }
 
-void Wall::save(vector<particle>& P, const string& filename) {
+void Wall::save(vector<particle>& P, const string filename) {
 	ofstream vystup(filename);
 
-	for(size_t i = 0; i < P.size(); i++) {
+	for (size_t i = 0; i < P.size(); i++) {
 		vystup << fixed << setprecision(2);
 		vystup << P[i].x << "\t" << P[i].y << "\t" << P[i].nx << "\t" << P[i].ny << endl;
 		
@@ -127,6 +127,45 @@ void Wall::save(vector<particle>& P, const string& filename) {
 	vystup.close();
 }
 
+void Wall::save2VTK(vector<particle>& P, const string filename) {
+int np = P.size();
+        
+ofstream vystup(filename);
+
+// file header
+vystup << "# vtk DataFile Version 2.0" << endl;
+vystup << "SPH boundary points and normals" << endl;
+vystup << "ASCII" << endl;
+vystup << "DATASET POLYDATA" << endl;
+
+// souradnice bodu a jejich normaly
+vystup << "POINTS " << np << " float" << endl;
+for (int i = 0; i < np; i++)
+	vystup << P[i].x << " " << P[i].y << " " << 0 << endl;
+
+vystup << endl << "POINT_DATA " << np << endl;
+vystup << "NORMALS " << "normaly" << " float" << endl;
+for (int i = 0; i < np; i++)
+	vystup << P[i].nx << " " << P[i].ny << " " << 0 << endl;
+
+/* --------------------- BARVY ------------------------- */
+vystup << endl << "SCALARS barva_bodu float 1" << endl;
+vystup << "LOOKUP_TABLE tabulka_barev" << endl;
+for (int i = 0; i < np; i++)
+	vystup << "0.0" << endl;
+	
+vystup << endl << "SCALARS barva_normal float 1" << endl;
+vystup << "LOOKUP_TABLE tabulka_barev" << endl;
+vystup << "0.0" << endl;
+for (int i = 0; i < np-1; i++)
+	vystup << "1.0" << endl;
+
+vystup << endl << "LOOKUP_TABLE tabulka_barev " << 2 << endl;
+vystup << "0.0 0.5 0.0 1.0" << endl; // zelená
+vystup << "1.0 0.0 0.0 1.0 "<< endl; // červená
+
+vystup.close();
+}
 
 
 void solveClosedWallCorners(vector<Wall>& wall) {
@@ -138,6 +177,13 @@ void solveClosedWallCorners(vector<Wall>& wall) {
 	solveWallCorner(wall[n-1], wall[0]);
 }
 
+void solveNWallCorners(vector<Wall>& wall) {
+	int n = wall.size();
+
+	for (int i = 0; i < n-1; i++)
+		solveWallCorner(wall[i], wall[i+1]);
+}
+
 void solveWallCorner(Wall& w1, Wall& w2) {
 	double eps = 1e-14;
 	
@@ -146,13 +192,15 @@ void solveWallCorner(Wall& w1, Wall& w2) {
 
 	if (compareFloatNumbers(w1.P[0].x, w2.P[0].x, eps) && 
 		compareFloatNumbers(w1.P[0].y, w2.P[0].y, eps)) {
-		
+
+		cout << "Spatna orientace sten wall[" << w1.idx << "] a wall[" << w2.idx << "]" << endl;
 		sumUnitVector(w1.P[0], w2.P[0]);
 	}
 
 	else if (compareFloatNumbers(w1.P[n1-1].x, w2.P[n2-1].x, eps) && 
 			 compareFloatNumbers(w1.P[n1-1].y, w2.P[n2-1].y, eps)) {
-
+				 
+		cout << "Spatna orientace sten wall[" << w1.idx << "] a wall[" << w2.idx << "]" << endl;
 		sumUnitVector(w1.P[n1-1], w2.P[n2-2]);
 	}
 
@@ -168,9 +216,8 @@ void solveWallCorner(Wall& w1, Wall& w2) {
 		sumUnitVector(w1.P[n1-1], w2.P[0]);
 	}
 
-	else {
-		cout << "wall[" << w1.idx << "] a wall[" <<  w2.idx << "] nesdílí žádné společné částice" << endl;
-	}
+	else
+		cout << endl << "Error: wall[" << w1.idx << "] a wall[" <<  w2.idx << "] nesdílí žádné společné částice" << endl;
 }
 
 
@@ -188,12 +235,13 @@ void defineRectangle(vector<Wall>& wall, double x_0, double y_0, double a, doubl
 void defineCircle(vector<Wall>& wall, double x_0, double y_0, double r, double dp) {
 	vector<double> t;
 	double zb;
-	linspaceInterval(t, 0, dp/r, 2*M_PI, &zb);
+	linspaceInterval(t, 0, dp/r, 2*M_PI, zb);
 
 	int n = t.size();
 	wall.resize(n);
 
-	for(int i = 0; i < n-1; i++){
+	for (int i = 0; i < n-1; i++){
+		wall[i].idx = i;
 		wall[i].P.resize(2);
 		wall[i].P[0].x  = x_0 + r*cos(t[i]); 
 		wall[i].P[0].y  = y_0 + r*sin(t[i]);
@@ -212,6 +260,7 @@ void defineCircle(vector<Wall>& wall, double x_0, double y_0, double r, double d
 		
 		wall.resize(n+1);
 
+		wall[n-1].idx = n-1;
 		wall[n-1].P.resize(2);
 		wall[n-1].P[0].x  = x_0 + r*cos(t[n-1]);
 		wall[n-1].P[0].y  = y_0 + r*sin(t[n-1]);
@@ -229,6 +278,7 @@ void defineCircle(vector<Wall>& wall, double x_0, double y_0, double r, double d
 		wall[n-1].P[1].nx = cos(t[n]);
 		wall[n-1].P[1].ny = sin(t[n]);
 
+		wall[n].idx = n;
 		wall[n].P.resize(2);
 		wall[n].P[0].x  = x_0 + r*cos(t[n]);
 		wall[n].P[0].y  = y_0 + r*sin(t[n]);
@@ -242,6 +292,7 @@ void defineCircle(vector<Wall>& wall, double x_0, double y_0, double r, double d
 	}
 
 	else {
+		wall[n-1].idx = n-1;
 		wall[n-1].P.resize(2);
 		wall[n-1].P[0].x  = x_0 + r*cos(t[n-1]);
 		wall[n-1].P[0].y  = y_0 + r*sin(t[n-1]);
@@ -258,16 +309,16 @@ void defineCircle(vector<Wall>& wall, double x_0, double y_0, double r, double d
 void defineCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_end, double y_end, double x_s, double y_s, double dp) {
 	vector <double> t;	
 	double r      = sqrt((x_0-x_s) * (x_0-x_s) + (y_0-y_s) * (y_0-y_s));
-	double l_half = 0.5*sqrt((-x_0+x_end) * (-x_0+x_end) + (-y_0+y_end) * (-y_0+y_end));
-	double tau 	  = 2*asin(l_half/r);
+	double l_half = 0.5 * sqrt((-x_0+x_end) * (-x_0+x_end) + (-y_0+y_end) * (-y_0+y_end));
+	double tau 	  = 2 * asin(l_half/r);
 	double psi;
 	double zb;
 
-	if(x_s == x_0 && y_0 > y_s)
-		psi = 0.5*M_PI; 	//horní pi/2
+	if (x_s == x_0 && y_0 > y_s)
+		psi = 0.5 * M_PI; 	//horní pi/2
 
 	else if (x_s == x_0 && y_0 < y_s)
-		psi = 1.5*M_PI; 	//dolní pi/2
+		psi = 1.5 * M_PI; 	//dolní pi/2
 
 	else {
 		double psi_p = atan(fabs(y_0-y_s) / fabs(x_0-x_s));
@@ -282,18 +333,16 @@ void defineCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_end, d
 			psi = M_PI + psi_p;		//3. kvadrant
 
 		else if(x_s <= x_0 && y_s > y_0)
-			psi = 2*M_PI - psi_p;	//4. kvadrant
+			psi = 2 * M_PI - psi_p;	//4. kvadrant
 	}
 	
 	double phi = psi + tau;	
-	//cout<<psi<< "   "<< phi <<endl;
-	linspaceInterval(t, psi, dp/r, phi, &zb);
+	linspaceInterval(t, psi, dp/r, phi, zb);
 	int n = t.size();
 	
-	
 	wall.resize(n);
-		for(int i = 0; i < n-1; i++){
-		//cout<<t[i]<<endl;
+
+	for (int i = 0; i < n-1; i++){
 		wall[i].P.resize(2);
 		wall[i].P[0].x  = x_s + r*cos(t[i]); 
 		wall[i].P[0].y  = y_s + r*sin(t[i]);
@@ -303,7 +352,6 @@ void defineCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_end, d
 		wall[i].P[0].ny = sin(t[i]);
 		wall[i].P[1].nx = cos(t[i+1]);
 		wall[i].P[1].ny = sin(t[i+1]);
-
 	}
 
     wall[n-1].P.resize(2);
@@ -318,27 +366,227 @@ void defineCircleArc(vector<Wall>& wall, double x_0, double y_0, double x_end, d
 	wall[n-1].P[1].ny = sin(phi);	
 }
 
+void defineCircleArcAlt(vector<Wall>& wall, double x_0, double y_0, double x_b, double y_b, double r, int ori, double dp) {
+double x_a    = 0.5 * (x_b+x_0);	// průsečík osy úsečky s úsečkou
+double y_a    = 0.5 * (y_0+y_b);  
+double l_half = sqrt((x_a-x_0) * (x_a-x_0) + (y_a-y_0) * (y_a-y_0));
+double h      = sqrt(r*r-l_half * l_half);
+			
+			
+double x_1 = (y_a * sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+ 			 * (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) 
+			 - y_0 * sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+			 * (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) 
+			 + h*h*x_0 - h*h*x_a - r*r*x_0 + r*r*x_a - x_0*x_a*x_a - x_0*x_0*x_a + x_0*y_0*y_0 
+			 + x_0*y_a*y_a + x_a*y_0*y_0 + x_a*y_a*y_a + x_0*x_0*x_0 + x_a*x_a*x_a - 2*x_0*y_0*y_a 
+			 - 2*x_a*y_0*y_a)/(2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
 
-void WallFinalize(vector<Wall>& wall) {
-	int n = wall.size();
+double x_2 = (y_0 * sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+			 * (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a))
+			 - y_a * sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+			 * (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a))
+			 + h*h*x_0 - h*h*x_a - r*r*x_0 + r*r*x_a - x_0*x_a*x_a - x_0*x_0*x_a + x_0*y_0*y_0 + x_0*y_a*y_a 
+			 + x_a*y_0*y_0 + x_a*y_a*y_a + x_0*x_0*x_0 + x_a*x_a*x_a - 2*x_0*y_0*y_a - 2*x_a*y_0*y_a)
+			 / (2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
 
-	for (int i = 0; i < n-1; i++) {
+double y_1 = (x_0 * sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+			 * (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) 
+			 - x_a * sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+			 * (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) 
+			 + h*h*y_0 - h*h*y_a - r*r*y_0 + r*r*y_a + x_0*x_0*y_0 + x_0*x_0*y_a + x_a*x_a*y_0 
+			 + x_a*x_a*y_a - y_0*y_a*y_a - y_0*y_0*y_a + y_0*y_0*y_0 + y_a*y_a*y_a - 2*x_0*x_a*y_0 
+			 - 2*x_0*x_a*y_a)/(2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
 
-	}
+double y_2 = (x_a*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+			* (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) 
+			- x_0*sqrt((h*h + 2*h*r + r*r - x_0*x_0 + 2*x_0*x_a - x_a*x_a - y_0*y_0 + 2*y_0*y_a - y_a*y_a)
+			* (-h*h + 2*h*r - r*r + x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a)) 
+			+ h*h*y_0 - h*h*y_a - r*r*y_0 + r*r*y_a + x_0*x_0*y_0 + x_0*x_0*y_a + x_a*x_a*y_0 + x_a*x_a*y_a 
+			- y_0*y_a*y_a - y_0*y_0*y_a + y_0*y_0*y_0 + y_a*y_a*y_a - 2*x_0*x_a*y_0 - 2*x_0*x_a*y_a)
+			/ (2*(x_0*x_0 - 2*x_0*x_a + x_a*x_a + y_0*y_0 - 2*y_0*y_a + y_a*y_a));
+		
+//cout << x_1 << "\t" << y_1 << endl;
+//cout << x_2 << "\t" << y_2 << endl;
+
+// ori= 1  konvex, 
+// ori=-1  konkáv
+
+double px_konvex, py_konvex;
+double px_konkav, py_konkav;
+double p_x, p_y;
+
+px_konvex = py_konvex = px_konkav = py_konkav = p_x = p_y = 0;
+
+if (y_1 > y_2) {
+	py_konvex = y_1;
+	px_konvex = x_1;
+
+	py_konkav = y_2;
+	px_konkav = x_2;
 }
 
-void WallSave(vector<Wall>& wall) {
+else if (y_1 <= y_2) {
+	py_konvex = y_2;
+	px_konvex = x_2;
+
+	py_konkav = y_1;
+	px_konkav = x_1;
+}
+
+
+if (ori == 1) {
+	p_x = px_konvex;
+	p_y = py_konvex;
+}
+
+else if (ori == -1){
+	p_x = px_konkav;
+	p_y = py_konkav;
+}
+
+else
+	cout << "Špatná orientace zadej 1 nebo -1" << endl;
+
+defineCircleArc(wall, x_0, y_0, x_b , y_b,  p_x,  p_y, dp);
+}
+
+
+void saveEachWall(vector<Wall>& wall) {
 	for (size_t i = 0; i < wall.size(); i++)
 		wall[i].save(wall[i].P, "wall" + std::to_string(i + 1) + ".txt");
 }
 
+void saveEachBoundary(vector<Wall>& Bndr) {
+	for (size_t i = 0; i < Bndr.size(); i++)
+		Bndr[i].save(Bndr[i].P, "bndr" + std::to_string(i + 1) + ".txt");
+}
 
-void linspaceInterval(vector<double>& t, double t_0, double dt, double t_end, double* zb) {
+
+void createPartBoundary(Wall& B, vector<Wall>& wall) {
+    int i, j, np, nbp, nw = wall.size();
+
+	static int idx_bndr = 0;
+	B.idx = idx_bndr;
+	idx_bndr++;
+
+    for (i = 0; i < nw; i++) {
+        np  = wall[i].P.size();
+        nbp = B.P.size();
+
+        if (i == 0) {
+            B.P.resize(nbp + np);
+
+            for (j = 0; j < np; j++)
+                B.P[j+nbp] = wall[i].P[j];
+        }
+
+        else {
+            B.P.resize(nbp + np-1);
+
+            for (j = 1; j < np; j++) 
+                B.P[j-1+nbp] = wall[i].P[j];
+        }  
+    }
+}
+
+void createClosedBoundary(Wall& B, vector<Wall>& wall) {
+    int i, j, np, nbp, nw = wall.size();
+
+    for (i = 0; i < nw; i++) {
+        np  = wall[i].P.size();
+        nbp = B.P.size();
+
+        if (i == 0) {
+            B.P.resize(nbp + np);
+
+            for (j = 0; j < np; j++)
+                B.P[j+nbp] = wall[i].P[j];
+        }
+
+        else if (i == nw-1) {
+            B.P.resize(nbp + np-2);
+
+            for (j = 1; j < np-1; j++) 
+                B.P[j-1+nbp] = wall[i].P[j];
+        }
+
+        else {
+            B.P.resize(nbp + np-1);
+
+            for (j = 1; j < np; j++) 
+                B.P[j-1+nbp] = wall[i].P[j];
+        }  
+    }
+}
+
+void connectAdjacentBoundaries(Wall& B1, Wall& B2) {
+	int i, icase;
+
+	int np1 = B1.P.size();
+    int np2 = B2.P.size();
+
+	findConnectParticle(B1, B2, icase);
+
+	if (icase == 0) {
+		B1.P.resize(np1+np2-1);
+
+		for (i = 0; i < np2-1; i++)
+			B1.P[np1+i] = B2.P[(np2-1)-i];
+
+	}
+
+	else if (icase == 1) {
+		B1.P.resize(np1+np2-1);
+
+		for (i = 1; i < np2; i++)
+			B1.P[np1+i-1] = B2.P[(np2-1)-i]; 
+	}
+
+	else if (icase == 2) {
+		B1.P.resize(np1+np2-1);
+
+		for (i = 0; i < np2-1; i++)
+			B1.P[np1+i] = B2.P[i]; 
+	}
+
+	else if (icase == 3) {
+		B1.P.resize(np1+np2-1);
+
+		for (i = 1; i < np2; i++)
+			B1.P[np1+i-1] = B2.P[i];
+	}
+
+	else if (icase == 4) {
+		B1.P.resize(np1+np2-2);
+
+		for (i = 1; i < np2-1; i++)
+			B1.P[np1+i-1] = B2.P[(np2-1)-i]; 
+	}
+
+	else if (icase == 5) {
+		B1.P.resize(np1+np2-2);
+
+		for (i = 1; i < np2-1; i++)
+			B1.P[np1+i-1] = B2.P[i]; 
+	}
+
+}
+
+void connectAllBoundaries(vector<Wall>& Bndr) {
+	int n = Bndr.size();
+
+	for (int i = 1; i < n; i++) 
+		connectAdjacentBoundaries(Bndr[0], Bndr[i]);
+
+}
+
+
+void linspaceInterval(vector<double>& t, double t_0, double dt, double t_end, double& zb) {
 	int n = (t_end - t_0)/dt;
-	*zb = (t_end - t_0)/dt - n;
+	zb = (t_end - t_0)/dt - n;
 
-	cout << "pocet dilku =" <<(t_end - t_0)/dt << endl;
-	cout << "zbytek = " << *zb << endl;
+	cout << "pocet dilku = " <<(t_end - t_0)/dt << endl;
+	cout << "zbytek = " << zb << endl;
 	//if (round(n) != n)
 	//	cout << "Error[linspace], interval nelze rozedělit "
 	t.resize(n);
@@ -352,7 +600,7 @@ bool compareFloatNumbers(double x, double y, double eps) {
 	return fabs(x-y) <= eps;
 }
 
-void sumUnitVector(particle& P1, particle& P2){
+void sumUnitVector(particle& P1, particle& P2) {
 	double nx, ny, l;
 
 	nx = P1.nx + P2.nx;
@@ -362,6 +610,53 @@ void sumUnitVector(particle& P1, particle& P2){
 	P1.nx = P2.nx = nx / l;
 	P1.ny = P2.ny = ny / l;
 }
+
+void findConnectParticle(Wall B1, Wall B2, int& icase) {
+    double eps = 1e-14;
+
+    int n1 = B1.P.size();
+	int n2 = B2.P.size();
+
+	if (compareFloatNumbers(B1.P[0].x, B2.P[0].x, eps) && compareFloatNumbers(B1.P[0].y, B2.P[0].y, eps) && 
+			 compareFloatNumbers(B1.P[n1-1].x, B2.P[n2-1].x, eps) && compareFloatNumbers(B1.P[n1-1].y, B2.P[n2-1].y, eps)) {
+
+		icase = 4;
+    } 
+
+	else if (compareFloatNumbers(B1.P[0].x, B2.P[n2-1].x, eps) && compareFloatNumbers(B1.P[0].y, B2.P[n2-1].y, eps) && 
+			 compareFloatNumbers(B1.P[n1-1].x, B2.P[0].x, eps) && compareFloatNumbers(B1.P[n1-1].y, B2.P[0].y, eps)) {
+
+		icase = 5;
+    } 
+
+    else if (compareFloatNumbers(B1.P[0].x, B2.P[0].x, eps) && 
+		compareFloatNumbers(B1.P[0].y, B2.P[0].y, eps)) {
+        
+		icase = 0;
+    }
+
+    else if (compareFloatNumbers(B1.P[n1-1].x, B2.P[n2-1].x, eps) && 
+			 compareFloatNumbers(B1.P[n1-1].y, B2.P[n2-1].y, eps)) {
+        
+		icase = 1;
+    }
+
+    else if (compareFloatNumbers(B1.P[0].x, B2.P[n2-1].x, eps) && 
+			 compareFloatNumbers(B1.P[0].y, B2.P[n2-1].y, eps)) {
+
+		icase = 2;
+    }
+
+    else if (compareFloatNumbers(B1.P[n1-1].x, B2.P[0].x, eps) && 
+			 compareFloatNumbers(B1.P[n1-1].y, B2.P[0].y, eps)) {
+
+		icase = 3;
+    } 
+
+	else
+		cout << "Error: Bndr[" << B1.idx << "] a Bndr[" <<  B2.idx << "] nesdílí žádné společné částice" << endl;  
+}
+
 
 double integrateRectMethod(double x, double dx, double f(double x)) {
 	double fx = f(x);
@@ -376,7 +671,7 @@ double integrateTrapMethod(double x, double dx, double f(double x), double a, do
 	return fx * dx;
 }
 
-double integrateFunction(double f(double x), double a, double b){
+double integrateFunction(double f(double x), double a, double b) {
 	int N = 1e5;
 	double x, dx = (b-a)/N;
 	double S = 0;
